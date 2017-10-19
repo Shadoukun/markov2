@@ -1,0 +1,56 @@
+# General bot options.
+nick: markov
+host: irc.freenode.net
+port: 6667
+username: markov
+realname: markov
+altnicks: ['markov_']
+channels: ['#lobby']
+
+# Database Options
+dbhost: localhost
+dbport: 27017
+
+# Command options
+admins: ['shadoukun']
+commandchar: "!"
+
+# Model options
+max_overlap_ratio: 0.2
+max_overlap_total: 10
+default_tries: 500
+
+
+
+# Formatters detailed here: http://docs.python.org/2/library/logging.html#logrecord-attributes
+logging:
+  version: 1
+  disable_existing_loggers: True
+
+  formatters:
+    simple:
+      format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    detail:
+      format: '%(asctime)s - %(levelname)s - File: %(filename)s - %(funcName)s() - Line: %(lineno)d -  %(message)s'
+
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: simple
+      stream: ext://sys.stdout
+
+  loggers:
+    markov:
+      level: DEBUG
+      handlers: [console]
+      propagate: no
+
+    IRCClient:
+      level: CRITICAL
+      handlers: [console]
+      propagate: no
+
+  root:
+    level: INFO
+    handlers: [console]
+    propagate: true
