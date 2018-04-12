@@ -1,41 +1,33 @@
 import inspect
 from pprint import pprint
-from functools import partial
+from functools import partial, wraps
 
-class Plugin:
-    ''' Base class for plugins.
-        Automatically populates Plugin.plugins
-        with list of subclasses.
-    '''
+class PluginHandler:
 
     plugins = []
-    ignore = ['name', 'callback', 'commands']
+
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(PluginHandler, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self, bot):
+        self.bot = bot
+
+class Plugin:
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        PluginHandler.plugins.append(cls)
 
     def __init__(self):
         self.commands = []
 
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-
-        plugin = cls()
-        plugin.commands = []
-
-        # Add commands to plugin's list of commands.
-        for _, var in vars(cls).items():
-            if type(var).__name__ == 'Command':
-                cmd = var
-
-                # Add plugin attributes to command.
-                for name, attr in vars(plugin).items():
-
-                    # skip variables we dont want
-                    if name not in Plugin.ignore:
-                        cmd.__dict__[name] = attr
-
-                plugin.commands.append(cmd)
-
-        Plugin.plugins.append(plugin)
-
+        for i in dir(self):
+            i = getattr(self, i)
+            if isinstance(i, Command):
+                self.commands.append(i)
 
 class Command:
     '''Empty command Class'''
@@ -44,10 +36,10 @@ class Command:
         self.name = name
         self.callback = callback
 
-
 def command(name, **attrs):
 
     def decorator(f):
+        cmd = Command(name, f)
         return Command(name, f)
 
     return decorator

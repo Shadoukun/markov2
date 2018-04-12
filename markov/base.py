@@ -57,32 +57,29 @@ class IRCClient(pydle.Client):
         Event("on_connect").send()
 
     def on_kick(self, channel, target, by, reason=None):
-        signal("on_kick").send(None, channel=channel, target=target, by=by, reason=reason)
+        Event("on_kick").send(channel=channel, target=target, by=by, reason=reason)
 
     def on_message(self, source, target, message):
 
-        if self.mentioned(message):
+        if self._mentioned(message):
             Event("on_mention").send(source=source, target=target, message=message)
 
-        elif self.is_command(message):
+        elif self._is_command(message):
             Event("on_command").send(source=source, target=target, message=message)
 
         else:
             Event("on_message").send(source=source, target=target, message=message)
 
 
-    def mentioned(self, message):
+    def _mentioned(self, message):
         ''' Check if bot was mentioned in message'''
-
         if re.match(f"^{self.nickname}", message):
             return True
-
         else:
             return False
 
-    def is_command(self, message):
+    def _is_command(self, message):
         '''Test if a message begins with a command'''
-
         if message.startswith(config.commandchar):
             return True
 
@@ -103,6 +100,7 @@ class BaseClient:
     def __init__(self):
         self.bot = IRCClient(config)
         self.eventhandler = Events(self)
+        self.pluginhandler = PluginHandler(self)
 
         self.plugins = []
         self.commands = []
@@ -113,10 +111,14 @@ class BaseClient:
     def load_plugins(self):
         ''' Load plugins from Plugin class'''
 
-        for plugin in Plugin.plugins:
+        for plugin in PluginHandler.plugins:
+            plugin = plugin(self)
+
             # add commands from plugins
             for cmd in plugin.commands:
+                # pass bot to the command
                 cmd.bot = self
+
                 self.commands.append(cmd)
 
             self.plugins.append(plugin)
@@ -138,8 +140,8 @@ class BaseClient:
                     c.callback(c, source, target, args)
 
         except Exception as e:
-            self.logger.debug(f"Command Failed.\n{command}\n{args}")
-            self.logger.debug(e)
+            self.logger.info(f"Command Failed.\n{command}\n{args}")
+            self.logger.info(e)
 
     def connect(self, host, port, tls=False, tls_verify=False):
         self.bot.connect(host, port, tls=tls, tls_verify=tls_verify)

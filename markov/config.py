@@ -2,22 +2,17 @@ import yaml
 import logging
 import logging.config
 
-class Singleton(type):
-
-    def __init__(cls, name, bases, dict):
-        super(Singleton, cls).__init__(cls, bases, dict)
-        cls._instanceDict = {}
-
-    def __call__(cls, *args, **kwargs):
-        argdict = {'args': args}
-        argdict.update(kwargs)
-        argset = frozenset(argdict)
-        if argset not in cls._instanceDict:
-            cls._instanceDict[argset] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instanceDict[argset]
+CONFIG = './config.yaml'
 
 
-class Config(metaclass=Singleton):
+class Config:
+
+    _instance = None
+    # Singleton
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
     def __init__(self):
         self.loadConfig('config.yaml')
@@ -42,9 +37,3 @@ class Config(metaclass=Singleton):
         logger = logging.getLogger(__name__)
 
 config = Config()
-
-if __name__ == '__main__':
-    test = Config()
-    test2 = Config()
-    print(test)
-    print(test2)

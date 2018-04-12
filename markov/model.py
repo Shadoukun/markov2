@@ -71,7 +71,7 @@ class Modeller(object):
 
         try:
             # generate model
-            self.model = markovify.NewlineText("\n".join(text), state_size=2)
+            self.model = markovify.NewlineText("\n".join(text), state_size=3)
 
             self.log.debug("Generated model successfully.")
             self.log.debug("[MODEL ID]" + str(id(self.model)))

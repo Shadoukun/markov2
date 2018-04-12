@@ -4,11 +4,13 @@ from markov.decorators import is_admin
 
 class Imitate(Plugin):
 
-    def __init__(self):
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
         self.imitating = False
 
-    @command(name="imitate")
     @is_admin
+    @command(name="imitate")
     def set_imitate(self, source, target, message):
 
         message = message.strip()
